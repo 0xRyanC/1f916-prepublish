@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.secret
+*ed25519*
+witness-key*
