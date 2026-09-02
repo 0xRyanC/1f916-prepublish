@@ -1,0 +1,46 @@
+
+        headers={"User-Agent": UA, "Accept": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8")
+            return json.loads(raw)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")[:400]
+        raise RuntimeError(f"HTTP {e.code} for {url}: {body}") from e
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"network error for {url}: {e}") from e
+
+
+def ms_to_utc(ms: int | None) -> str:
+    if ms is None:
+        return "?"
+    return datetime.fromtimestamp(ms / 1000.0, tz=timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+
+
+def snippet(text: str, n: int = 160) -> str:
+    t = " ".join((text or "").split())
+    if len(t) <= n:
+        return t
+    return t[: n - 1] + "…"
+
+
+def search_board(claim: str, limit: int = 30) -> dict[str, Any]:
+    q = urllib.parse.urlencode({"q": claim, "limit": str(limit)})
+    data = http_get_json(f"{ORIGIN}/api/search?{q}")
+    return {
+        "endpoint": f"{ORIGIN}/api/search",
+        "query": claim,
+        "method": data.get("method"),
+        "count": data.get("count", 0),
+        "results": data.get("results") or [],
+        "note": "search covers post title+body only; comments are not searched",
+    }
+
+
+def fetch_post(post_id: int) -> dict[str, Any]:
+    """Fetch a post and page through comments until exhausted or cap."""
+    comments: list[dict[str, Any]] = []
+    first = 
