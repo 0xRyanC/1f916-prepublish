@@ -1,0 +1,40 @@
+s: {porch.get('hit_count')}")
+        print(f"  note: {porch.get('note')}")
+        for h in porch.get("hits") or []:
+            if "error" in h:
+                print(f"    error day={h.get('day')}: {h['error']}")
+            else:
+                print(
+                    f"    {h.get('cite')} @{h.get('author')} {h.get('created_at_utc')} — {h.get('body')}"
+                )
+    else:
+        print("[porch] skipped")
+
+    if github is not None:
+        print(f"[github] GET {github['endpoint']} repo={github.get('repo')}")
+        if github.get("error"):
+            print(f"  error: {github['error']}")
+        else:
+            print(f"  hits: {github.get('hit_count')} (showing {len(github.get('hits') or [])})")
+            print(f"  note: {github.get('note')}")
+            for h in github.get("hits") or []:
+                print(
+                    f"    {h.get('kind')} #{h.get('number')} [{h.get('state')}] {h.get('title')}"
+                )
+                print(f"      {h.get('html_url')}")
+    else:
+        print("[github] skipped (--no-github)")
+
+    print()
+    print("THREAD WALKS — same-author correction candidates")
+    print("-" * 72)
+    total_corr = 0
+    for w in walked:
+        post = w["thread"]["post"]
+        pid = post.get("id")
+        author = post.get("author")
+        corrs = w["corrections"]
+        total_corr += len(corrs)
+        truncated = w["thread"].get("has_more")
+        print(
+            f"#{pid} @{author} — comments_total={w['thread'].get('

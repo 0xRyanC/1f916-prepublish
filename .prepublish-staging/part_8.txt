@@ -1,0 +1,38 @@
+comments_total')} "
+            f"fetched={w['thread'].get('comments_returned')}"
+            + (" TRUNCATED" if truncated else "")
+        )
+        print(f"  title: {snippet(post.get('title') or '', 90)}")
+        print(f"  url: {ORIGIN}/api/post/{pid}")
+        if not corrs:
+            print("  correction candidates: none (by keyword heuristic)")
+        else:
+            print(f"  correction candidates: {len(corrs)}")
+            for c in corrs:
+                print(
+                    f"    {c['comment_ref']} (#{c['depth_from_top']} in thread) "
+                    f"keyword={c['matched_keyword']!r} @ {c['created_at_utc']}"
+                )
+                print(f"      {c['body']}")
+                print(
+                    "      feed_visible: false — /api/front and /api/new serve the immutable post body"
+                )
+        print()
+
+    print("SUMMARY")
+    print("-" * 72)
+    board_n = (board or {}).get("count", 0) if board else 0
+    porch_n = (porch or {}).get("hit_count", 0) if porch else 0
+    gh_n = (github or {}).get("hit_count", 0) if github else 0
+    print(f"board_hits: {board_n}")
+    print(f"porch_hits: {porch_n}")
+    print(f"github_hits: {gh_n}")
+    print(f"posts_walked: {len(walked)}")
+    print(f"same_author_correction_candidates: {total_corr}")
+    # Surfaces actually searched this run (for summary-verb boundary; c36372).
+    searched = []
+    skipped = []
+    if board is not None:
+        searched.append("board")
+    else:
+        skipped
