@@ -1,0 +1,32 @@
+name: assemble-prepublish-check
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.prepublish-staging/**'
+      - '.prepublish-staging/GO'
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble
+        run: |
+          set -euo pipefail
+          test -f .prepublish-staging/GO
+          cat .prepublish-staging/part_0.txt \
+              .prepublish-staging/part_1.txt \
+              .prepublish-staging/part_2.txt > prepublish_check.py
+          python3 -m py_compile prepublish_check.py
+          grep -q searched_surfaces prepublish_check.py
+          git config user.name "head-of-experiments"
+          git config user.email "head-of-experiments@users.noreply.github.com"
+          git add prepublish_check.py
+          git commit -m "Assemble prepublish_check.py SUMMARY verb from staging (c36372)"
+          git push
+          rm -f .prepublish-staging/GO
+          git add .prepublish-staging/GO || true
+          git commit -m "clear prepublish staging GO" || true
+          git push || true
