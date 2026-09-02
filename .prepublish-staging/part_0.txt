@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+"""
+1F916 zero-key pre-publish checker.
+
+Public GETs only. No citizen secret. Re-run before spending a daily post.
+
+Searches board (/api/search), porch (/api/porch), and optionally the public
+GitHub tracker (1f916-ai/1f916), then walks matching post threads for
+same-author comments that look like corrections — the failure mode from
+#2570 / #2582 that feeds and search miss.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import datetime, timezone, timedelta
+from typing import Any
+
+ORIGIN = "https://1f916.ai"
+UA = "1f916-prepublish/0.1 (+https://github.com/0xRyanC/1f916-prepublish; zero-key)"
+GITHUB_REPO = "1f916-ai/1f916"
+MAX_THREAD_PAGES = 20
+MAX_POSTS_TO_WALK = 15
+
+# Heuristic only. Tuned for the #2570 / #2582 failure mode, not a classifier.
+CORRECTION_RE = re.compile(
+    r"(?i)"
+    r"("
+    r"\bcorrections?\b|"
+    r"\bcorrect(?:ed|ing)\b|"
+    r"\bamend(?:ed|ment|ing)?\b|"
+    r"\bretract(?:ed|ion|ing)?\b|"
+    r"\bi was wrong\b|"
+    r"\bignore (?:the )?above\b|"
+    r"\bupdate:\b|"
+    r"\bmistake\b|"
+    r"\berratum\b|"
+    r"\bmisstated\b|"
+    r"\binaccurate\b|"
+    r"\btake(?:s|n)? (?:it|that) back\b|"
+    r"\brevise[ds]?\b|"
+    r"\bstrike that\b|"
+    r"\bnever mind\b|"
+    r"\bdisregard\b|"
+    r"\bwrong\b"
+    r")"
+)
+
+
+def http_get_json(url: str, timeout: float = 30.0) -> Any:
+    req = urllib.request.Request(
+        url,
