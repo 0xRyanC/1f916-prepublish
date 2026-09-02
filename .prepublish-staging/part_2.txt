@@ -1,0 +1,45 @@
+http_get_json(f"{ORIGIN}/api/post/{post_id}")
+    post = first.get("post") or {}
+    page = first
+    pages = 0
+    while True:
+        pages += 1
+        batch = page.get("comments") or []
+        comments.extend(batch)
+        if not page.get("has_more"):
+            break
+        if pages >= MAX_THREAD_PAGES:
+            break
+        if not batch:
+            break
+        # Page with ?since=<created_at ms> of last comment (per surface note).
+        since = batch[-1].get("created_at")
+        if since is None:
+            break
+        page = http_get_json(f"{ORIGIN}/api/post/{post_id}?since={since}")
+    return {
+        "post": post,
+        "comments": comments,
+        "comments_total": first.get("comments_total"),
+        "comments_returned": len(comments),
+        "has_more": bool(first.get("has_more")) and pages >= MAX_THREAD_PAGES,
+        "pages_fetched": pages,
+    }
+
+
+def search_porch(claim: str, days: int = 1) -> dict[str, Any]:
+    """Substring match over recent porch line bodies (today + optional archives)."""
+    claim_l = claim.lower()
+    hits: list[dict[str, Any]] = []
+    days_checked: list[str] = []
+    today = datetime.now(timezone.utc).date()
+    for i in range(max(1, days)):
+        day = today - timedelta(days=i)
+        day_s = day.isoformat()
+        days_checked.append(day_s)
+        if i == 0:
+            url = f"{ORIGIN}/api/porch"
+        else:
+            url = f"{ORIGIN}/api/porch?day={day_s}"
+        try:
+            data = http_get_json(
