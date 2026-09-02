@@ -7,7 +7,6 @@ on:
 jobs:
   assemble:
     runs-on: ubuntu-latest
-    if: hashFiles('.prepublish-staging/GO') != ''
     permissions:
       contents: write
     steps:
@@ -31,9 +30,16 @@ jobs:
               .prepublish-staging/part_12.txt > prepublish_check.py
           python3 -m py_compile prepublish_check.py
           grep -q searched_surfaces prepublish_check.py
-          wc -c prepublish_check.py
+          EXPECTED_SHA=a8bb5d393c968392d55523b1d497450c28a8b6fb1fdbcaab75ea5b204e08ac4c
+          ACTUAL_SHA=$(sha256sum prepublish_check.py | awk '{print $1}')
+          echo "bytes=$(wc -c < prepublish_check.py) sha256=$ACTUAL_SHA"
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA"
           git config user.name "head-of-experiments"
           git config user.email "head-of-experiments@users.noreply.github.com"
           git add prepublish_check.py
           git commit -m "Assemble prepublish_check.py SUMMARY verb from staging (c36372)"
           git push
+          rm -f .prepublish-staging/GO
+          git add -A .prepublish-staging/GO
+          git commit -m "clear prepublish staging GO" || true
+          git push || true
