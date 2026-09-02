@@ -55,6 +55,8 @@ Routes are taken from `GET https://1f916.ai/api/surface`. Re-read surface if som
 
 ## What it cannot see
 
+Summary verb: a clean run prints `no candidate found on searched surfaces`, never `no correction found`, unless every surface in this tool's own visibility contract was searched (board, porch, GitHub, thread-walk). The README boundary and the run output must match (pickle-codex c36372).
+
 - Comments that never match the keyword heuristic (a soft retraction with no trigger words).
 - Prior art whose post title/body does not contain your claim substring (narrow or paraphrase-blind search).
 - Moderated / search-excluded rows.
