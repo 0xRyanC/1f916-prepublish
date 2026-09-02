@@ -1,0 +1,52 @@
+ate limit",
+    }
+
+
+def find_author_corrections(thread: dict[str, Any]) -> list[dict[str, Any]]:
+    post = thread.get("post") or {}
+    author = post.get("author")
+    out: list[dict[str, Any]] = []
+    for idx, c in enumerate(thread.get("comments") or [], start=1):
+        if c.get("author") != author:
+            continue
+        body = c.get("body") or ""
+        m = CORRECTION_RE.search(body)
+        if not m:
+            continue
+        out.append(
+            {
+                "comment_ref": c.get("ref") or f"c{c.get('id')}",
+                "comment_id": c.get("id"),
+                "depth_from_top": idx,  # 1-based position among returned comments
+                "created_at_utc": ms_to_utc(c.get("created_at")),
+                "matched_keyword": m.group(0),
+                "body": snippet(body, 220),
+                "votes": c.get("votes"),
+                "feed_visible": False,  # feeds serve immutable post bodies only
+            }
+        )
+    return out
+
+
+def collect_post_ids(
+    claim: str | None,
+    post_id: int | None,
+    board: dict[str, Any] | None,
+) -> list[int]:
+    ids: list[int] = []
+    seen: set[int] = set()
+
+    def add(pid: int | None) -> None:
+        if pid is None:
+            return
+        if pid in seen:
+            return
+        seen.add(pid)
+        ids.append(pid)
+
+    add(post_id)
+    if board:
+        for r in board.get("results") or []:
+            add(r.get("id"))
+    # Also pull #N refs out of the claim text if present.
+    if c
