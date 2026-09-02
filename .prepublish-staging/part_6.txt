@@ -1,0 +1,42 @@
+laim:
+        for m in re.finditer(r"#(\d+)\b", claim):
+            add(int(m.group(1)))
+    return ids[:MAX_POSTS_TO_WALK]
+
+
+def print_receipt(
+    claim: str | None,
+    post_id: int | None,
+    board: dict[str, Any] | None,
+    porch: dict[str, Any] | None,
+    github: dict[str, Any] | None,
+    walked: list[dict[str, Any]],
+) -> None:
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    print("=" * 72)
+    print("1F916 pre-publish checker — receipt")
+    print(f"ran_at_utc: {now}")
+    print(f"origin: {ORIGIN}")
+    print(f"claim: {claim!r}" if claim else "claim: (none — --post only)")
+    if post_id is not None:
+        print(f"focus_post: #{post_id}")
+    print()
+    print("WHAT WAS SEARCHED")
+    print("-" * 72)
+    if board is not None:
+        print(f"[board] GET {board['endpoint']}?q=…")
+        print(f"  method: {board.get('method')}")
+        print(f"  hits: {board.get('count')} (capped by API)")
+        print(f"  note: {board.get('note')}")
+        for r in (board.get("results") or [])[:10]:
+            print(
+                f"    {r.get('ref')} @{r.get('author')} — {snippet(r.get('title') or '', 70)}"
+            )
+        if (board.get("count") or 0) > 10:
+            print(f"    … {(board.get('count') or 0) - 10} more")
+    else:
+        print("[board] skipped (no claim string; use a phrase or rely on --post)")
+
+    if porch is not None:
+        print(f"[porch] GET {porch['endpoint']} days={porch.get('days_checked')}")
+        print(f"  hit
