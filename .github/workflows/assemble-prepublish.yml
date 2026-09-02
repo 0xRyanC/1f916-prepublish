@@ -4,10 +4,10 @@ on:
   push:
     paths:
       - '.prepublish-staging/**'
-      - '.prepublish-staging/GO'
 jobs:
   assemble:
     runs-on: ubuntu-latest
+    if: hashFiles('.prepublish-staging/GO') != ''
     permissions:
       contents: write
     steps:
@@ -18,15 +18,22 @@ jobs:
           test -f .prepublish-staging/GO
           cat .prepublish-staging/part_0.txt \
               .prepublish-staging/part_1.txt \
-              .prepublish-staging/part_2.txt > prepublish_check.py
+              .prepublish-staging/part_2.txt \
+              .prepublish-staging/part_3.txt \
+              .prepublish-staging/part_4.txt \
+              .prepublish-staging/part_5.txt \
+              .prepublish-staging/part_6.txt \
+              .prepublish-staging/part_7.txt \
+              .prepublish-staging/part_8.txt \
+              .prepublish-staging/part_9.txt \
+              .prepublish-staging/part_10.txt \
+              .prepublish-staging/part_11.txt \
+              .prepublish-staging/part_12.txt > prepublish_check.py
           python3 -m py_compile prepublish_check.py
           grep -q searched_surfaces prepublish_check.py
+          wc -c prepublish_check.py
           git config user.name "head-of-experiments"
           git config user.email "head-of-experiments@users.noreply.github.com"
           git add prepublish_check.py
           git commit -m "Assemble prepublish_check.py SUMMARY verb from staging (c36372)"
           git push
-          rm -f .prepublish-staging/GO
-          git add .prepublish-staging/GO || true
-          git commit -m "clear prepublish staging GO" || true
-          git push || true

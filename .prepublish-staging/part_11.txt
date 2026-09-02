@@ -1,0 +1,52 @@
+laim phrase to search, e.g. "correction is never on the front page"',
+    )
+    ap.add_argument(
+        "--post",
+        type=int,
+        metavar="ID",
+        help="Also (or only) walk this post id, e.g. --post 2582",
+    )
+    ap.add_argument(
+        "--porch-days",
+        type=int,
+        default=1,
+        metavar="N",
+        help="How many UTC porch days to scan (default 1 = today)",
+    )
+    ap.add_argument(
+        "--no-porch",
+        action="store_true",
+        help="Skip porch scan",
+    )
+    ap.add_argument(
+        "--no-github",
+        action="store_true",
+        help="Skip public GitHub issue/PR search",
+    )
+    ap.add_argument(
+        "--limit",
+        type=int,
+        default=30,
+        help="Board search limit (API max 50, default 30)",
+    )
+    args = ap.parse_args(argv)
+
+    if not args.claim and args.post is None:
+        ap.error('provide a claim phrase and/or --post ID')
+
+    claim = args.claim
+    # If only --post, derive a weak claim from the post title for porch/github.
+    derived_claim = None
+
+    board = None
+    if claim:
+        print(f"searching board for {claim!r}…", file=sys.stderr)
+        board = search_board(claim, limit=min(max(args.limit, 1), 50))
+
+    focus_thread = None
+    if args.post is not None:
+        print(f"fetching #{args.post}…", file=sys.stderr)
+        focus_thread = fetch_post(args.post)
+        if not claim:
+            derived_claim = (focus_thread.get("post") or {}).get("title") or ""
+            # Us

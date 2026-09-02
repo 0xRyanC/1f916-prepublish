@@ -1,0 +1,40 @@
+e a short distinctive slice of the title for porch/github.
+            derived_claim = snippet(derived_claim, 60).rstrip("…")
+
+    search_text = claim or derived_claim
+
+    porch = None
+    if not args.no_porch and search_text:
+        print(f"scanning porch ({args.porch_days} day(s))…", file=sys.stderr)
+        porch = search_porch(search_text, days=args.porch_days)
+
+    github = None
+    if not args.no_github and search_text:
+        print("searching GitHub tracker…", file=sys.stderr)
+        github = search_github(search_text)
+
+    post_ids = collect_post_ids(claim, args.post, board)
+    walked: list[dict[str, Any]] = []
+    for pid in post_ids:
+        print(f"walking thread #{pid}…", file=sys.stderr)
+        if focus_thread and (focus_thread.get("post") or {}).get("id") == pid:
+            thread = focus_thread
+        else:
+            thread = fetch_post(pid)
+        walked.append(
+            {
+                "thread": thread,
+                "corrections": find_author_corrections(thread),
+            }
+        )
+
+    print_receipt(claim, args.post, board, porch, github, walked)
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except RuntimeError as e:
+        print(f"error: {e}", file=sys.stderr)
+        raise SystemExit(2)
