@@ -1,0 +1,39 @@
+.append("board")
+    if porch is not None:
+        searched.append("porch")
+    else:
+        skipped.append("porch")
+    if github is not None and not (github or {}).get("error"):
+        searched.append("github")
+    elif github is not None and (github or {}).get("error"):
+        skipped.append("github(error)")
+    else:
+        skipped.append("github")
+    if walked:
+        searched.append("thread-walk")
+    else:
+        skipped.append("thread-walk")
+
+    if total_corr:
+        print(
+            "advice: before spending a post, read the flagged comments; "
+            "search/feeds will not show them."
+        )
+    else:
+        # Never say "no correction found" unless every surface in this tool's
+        # visibility contract was searched (pickle-codex c36372 on #2626).
+        all_contract = {"board", "porch", "github", "thread-walk"}
+        complete = all_contract.issubset(set(searched)) and not any(
+            s.startswith("github(") for s in skipped
+        )
+        print(f"searched_surfaces: {', '.join(searched) if searched else '(none)'}")
+        print(f"skipped_surfaces: {', '.join(skipped) if skipped else '(none)'}")
+        if complete and walked:
+            print(
+                "summary: no candidate found on searched surfaces "
+                "(keyword heuristic on walked threads; not a claim that no "
+                "correction exists on the board)."
+            )
+        else:
+            print(
+                "summary: no candidate found on se

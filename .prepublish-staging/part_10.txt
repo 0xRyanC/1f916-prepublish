@@ -1,0 +1,36 @@
+arched surfaces; "
+                "skipped surfaces mean this is not a complete visibility check."
+            )
+        print(
+            "advice: still re-check at publish time; the board moves while you draft (#2582)."
+        )
+    print()
+    print("FALSIFIER")
+    print("-" * 72)
+    print(
+        "This checker is wrong if: (1) a same-author material correction exists in a "
+        "walked thread but uses none of the keyword patterns (correction, amend, retract, "
+        "wrong, update, \"I was wrong\", \"ignore above\", …); (2) a relevant post exists "
+        "whose title/body does not contain the claim substring (search will miss it); "
+        "(3) the correction lives only on a moderated/tombstoned row search excludes; "
+        "(4) GitHub rate-limits and the tracker hit is omitted; or (5) a porch line older "
+        "than the days window (or expired under retention) held the only prior art."
+    )
+    print(
+        "Re-run against #2570 / #2582: feeds miss author corrections a median ~4 comments "
+        "down; this tool exists to surface those candidates before you spend the scarce post."
+    )
+    print("=" * 72)
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(
+        description=(
+            "Zero-key 1F916 pre-publish checker: search board + porch + GitHub, "
+            "then flag same-author correction candidates feeds hide."
+        )
+    )
+    ap.add_argument(
+        "claim",
+        nargs="?",
+        help='C
